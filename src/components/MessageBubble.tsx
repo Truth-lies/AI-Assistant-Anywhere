@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Modal, Pressable } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import Markdown from 'react-native-markdown-display';
 import { useTheme } from '../hooks/useTheme';
 import { useAppStore } from '../store';
@@ -26,8 +27,16 @@ function MessageBubbleImpl({ message }: Props) {
   const { userDisplayName, userAvatarEmoji, userBubbleStyle, theme } = useAppStore((s) => s.settings);
   const isUser = message.role === 'user';
   const [previewUri, setPreviewUri] = React.useState<string | null>(null);
+  const [copied, setCopied] = React.useState(false);
   const isDark = theme === 'dark';
   const userBubbleColor = getUserBubbleColorByStyle(userBubbleStyle, isDark);
+
+  const handleCopyText = async () => {
+    if (!message.content) return;
+    await Clipboard.setStringAsync(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const bubbleStyle = isUser
     ? [styles.bubble, styles.userBubble, { backgroundColor: userBubbleColor }]
@@ -245,6 +254,20 @@ function MessageBubbleImpl({ message }: Props) {
             minute: '2-digit',
           })}
         </Text>
+
+        {/* AI 消息复制按钮 */}
+        {!isUser && !!message.content && (
+          <TouchableOpacity
+            onPress={handleCopyText}
+            style={styles.copyBtn}
+            activeOpacity={0.6}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            <Text style={[styles.copyBtnText, { color: copied ? colors.success : colors.textTertiary }]}>
+              {copied ? '✓ 已复制' : '复制'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <Modal
@@ -443,5 +466,17 @@ const styles = StyleSheet.create({
   previewImage: {
     width: '100%',
     height: '80%',
+  },
+  copyBtn: {
+    marginTop: 4,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  copyBtnText: {
+    fontSize: 11,
+    fontFamily: Typography.fontFamily,
+    fontWeight: '500',
   },
 });

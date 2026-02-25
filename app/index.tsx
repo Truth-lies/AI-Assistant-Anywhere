@@ -1,7 +1,7 @@
 /**
  * 主聊天页面
  */
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
   View,
   FlatList,
@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   PanResponder,
+  Animated,
 } from 'react-native';
 import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -24,6 +25,68 @@ import { ChatInput } from '../src/components/ChatInput';
 import { ConversationDrawer } from '../src/components/ConversationDrawer';
 import { Typography } from '../src/constants/theme';
 import { APP_AVATAR } from '../src/constants/branding';
+
+/** 快捷提示语（参考 ChatGPT/Claude 空状态设计） */
+const QUICK_PROMPTS = [
+  { emoji: '✍️', text: '帮我写一封工作邮件' },
+  { emoji: '🔍', text: '现在有什么热点新闻？' },
+  { emoji: '🎨', text: '画一幅赛博朋克城市夜景' },
+  { emoji: '💡', text: '给我讲解量子计算的基础' },
+];
+
+/** 动态打点组件（类 ChatGPT 流式等待指示器） */
+function TypingDots({ color }: { color: string }) {
+  const dot1 = useRef(new Animated.Value(0)).current;
+  const dot2 = useRef(new Animated.Value(0)).current;
+  const dot3 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const anim = (dot: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(dot, { toValue: 1, duration: 280, useNativeDriver: true }),
+          Animated.timing(dot, { toValue: 0, duration: 280, useNativeDriver: true }),
+          Animated.delay(560),
+        ])
+      );
+
+    const a1 = anim(dot1, 0);
+    const a2 = anim(dot2, 180);
+    const a3 = anim(dot3, 360);
+    a1.start();
+    a2.start();
+    a3.start();
+
+    return () => {
+      a1.stop();
+      a2.stop();
+      a3.stop();
+    };
+  }, [dot1, dot2, dot3]);
+
+  const dotStyle = (anim: Animated.Value) => ({
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: color,
+    marginHorizontal: 2,
+    opacity: anim.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] }),
+    transform: [
+      {
+        translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }),
+      },
+    ],
+  });
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', height: 18 }}>
+      <Animated.View style={dotStyle(dot1)} />
+      <Animated.View style={dotStyle(dot2)} />
+      <Animated.View style={dotStyle(dot3)} />
+    </View>
+  );
+}
 
 export default function ChatScreen() {
   const colors = useTheme();
@@ -77,6 +140,7 @@ export default function ChatScreen() {
     currentConversationId,
     conversations,
     newConversation,
+    sendMessage,
     settings,
   } = useAppStore();
 
@@ -87,6 +151,10 @@ export default function ChatScreen() {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
   }, []);
+
+  const handleQuickPrompt = useCallback((text: string) => {
+    sendMessage(text, 'text').catch(() => {});
+  }, [sendMessage]);
 
   if (!initialized) {
     return (
@@ -167,7 +235,23 @@ export default function ChatScreen() {
                   </View>
                 </View>
 
-                {!settings.deepseekApiKey && (
+                {settings.deepseekApiKey ? (
+                  <View style={styles.quickPromptsContainer}>
+                    {QUICK_PROMPTS.map((p) => (
+                      <TouchableOpacity
+                        key={p.text}
+                        onPress={() => handleQuickPrompt(p.text)}
+                        style={[styles.quickPromptBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                        activeOpacity={0.7}
+                        disabled={isLoading}
+                      >
+                        <Text style={[styles.quickPromptText, { color: colors.text }]}>
+                          {p.emoji} {p.text}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : (
                   <TouchableOpacity
                     onPress={() => router.push('/settings')}
                     style={[styles.setupBtn, { backgroundColor: colors.primary }]}
@@ -201,9 +285,9 @@ export default function ChatScreen() {
             {/* 加载指示器 */}
             {isLoading && (
               <View style={styles.typingIndicator}>
-                <ActivityIndicator size="small" color={colors.primary} />
+                <TypingDots color={colors.primary} />
                 <Text style={[styles.typingText, { color: colors.textSecondary }]}>
-                  AI正在思考...
+                  AI 正在思考
                 </Text>
               </View>
             )}
@@ -294,7 +378,23 @@ export default function ChatScreen() {
             </View>
           </View>
 
-          {!settings.deepseekApiKey && (
+          {settings.deepseekApiKey ? (
+            <View style={styles.quickPromptsContainer}>
+              {QUICK_PROMPTS.map((p) => (
+                <TouchableOpacity
+                  key={p.text}
+                  onPress={() => handleQuickPrompt(p.text)}
+                  style={[styles.quickPromptBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  activeOpacity={0.7}
+                  disabled={isLoading}
+                >
+                  <Text style={[styles.quickPromptText, { color: colors.text }]}>
+                    {p.emoji} {p.text}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
             <TouchableOpacity
               onPress={() => router.push('/settings')}
               style={[styles.setupBtn, { backgroundColor: colors.primary }]}
@@ -328,9 +428,9 @@ export default function ChatScreen() {
       {/* 加载指示器 */}
       {isLoading && (
         <View style={styles.typingIndicator}>
-          <ActivityIndicator size="small" color={colors.primary} />
+          <TypingDots color={colors.primary} />
           <Text style={[styles.typingText, { color: colors.textSecondary }]}>
-            AI正在思考...
+            AI 正在思考
           </Text>
         </View>
       )}
@@ -506,14 +606,31 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: Typography.fontFamily,
   },
+  quickPromptsContainer: {
+    marginTop: 20,
+    width: '100%',
+    gap: 8,
+  },
+  quickPromptBtn: {
+    borderWidth: 0.8,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    width: '100%',
+  },
+  quickPromptText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: Typography.fontFamily,
+  },
   typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
+    paddingVertical: 8,
+    gap: 6,
   },
   typingText: {
-    marginLeft: 8,
     fontSize: 13,
     fontFamily: Typography.fontFamily,
   },
