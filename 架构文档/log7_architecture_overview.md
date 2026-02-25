@@ -1,6 +1,6 @@
 # 📐 项目总体架构图
 
-> 生成时间：2025 年 · 基于当前代码库分析
+> 更新时间：2026 年 · 基于当前代码库分析
 
 ---
 
@@ -10,13 +10,13 @@
 graph TB
     subgraph UI["🖥️ UI 层 (React Native / Expo Router)"]
         layout["_layout.tsx<br/>ErrorBoundary 包裹"]
-        index["index.tsx<br/>主聊天界面"]
+        index["index.tsx<br/>主聊天界面<br/>快捷提示 · 动态打点"]
         settings["settings.tsx<br/>设置页面"]
         call["call.tsx<br/>通话页面"]
         rag_page["rag.tsx<br/>RAG 管理页面"]
-        MB["MessageBubble.tsx<br/>消息气泡组件"]
-        CI["ChatInput.tsx<br/>输入框组件"]
-        CD["ConversationDrawer.tsx<br/>会话侧栏"]
+        MB["MessageBubble.tsx<br/>消息气泡组件<br/>复制按钮 · 工具调用展示"]
+        CI["ChatInput.tsx<br/>输入框组件<br/>多附件 · 发送/停止"]
+        CD["ConversationDrawer.tsx<br/>会话侧栏<br/>批量删除"]
         EB["ErrorBoundary.tsx<br/>错误边界"]
     end
 
@@ -25,13 +25,13 @@ graph TB
     end
 
     subgraph Agent["🤖 Agent 智能层"]
-        agent["agent.ts<br/>意图路由 & 工具调度"]
+        agent["agent.ts<br/>意图路由 & 工具调度<br/>图片/搜索/时间/对话"]
     end
 
     subgraph Services["⚙️ 服务层"]
         deepseek["deepseek.ts<br/>DeepSeek API 对接<br/>XHR SSE 流式"]
         webSearch["webSearch.ts<br/>DashScope Qwen<br/>enable_search"]
-        imageGen["imageGen.ts<br/>qwen-image-max<br/>文生图"]
+        imageGen["imageGen.ts<br/>qwen-image-max<br/>文生图 + 提示词优化"]
         voice["voice.ts<br/>语音服务"]
     end
 
@@ -52,6 +52,13 @@ graph TB
         types["types/index.ts<br/>类型定义"]
     end
 
+    subgraph Tests["🧪 测试层"]
+        t1["__tests__/utils/time.test.ts"]
+        t2["__tests__/utils/vectorSearch.test.ts"]
+        t3["__tests__/components/MessageBubble.test.ts"]
+        setup["__tests__/setup.ts<br/>Jest + RN Mocks"]
+    end
+
     UI --> State
     State --> Agent
     Agent --> Services
@@ -62,6 +69,8 @@ graph TB
     Config -.-> UI
     Config -.-> Services
     Config -.-> State
+    Tests -.-> UI
+    Tests -.-> RAG
 
     style UI fill:#E3F2FD,stroke:#1565C0
     style State fill:#FFF3E0,stroke:#EF6C00
@@ -70,6 +79,7 @@ graph TB
     style RAG fill:#FCE4EC,stroke:#C62828
     style Data fill:#ECEFF1,stroke:#37474F
     style Config fill:#FFFDE7,stroke:#F9A825
+    style Tests fill:#F1F8E9,stroke:#558B2F
 ```
 
 ---
@@ -87,8 +97,8 @@ graph LR
     end
 
     subgraph Comp["组件"]
-        C1["MessageBubble"]
-        C2["ChatInput"]
+        C1["MessageBubble<br/>复制/下载/工具调用"]
+        C2["ChatInput<br/>多附件/发送/停止"]
         C3["ConversationDrawer"]
         C4["ErrorBoundary"]
     end
@@ -115,6 +125,7 @@ graph LR
         U1["vectorSearch.ts"]
         U2["markdown.ts"]
         U3["fileUtils.ts"]
+        U4["time.ts"]
     end
 
     subgraph DB
@@ -169,9 +180,34 @@ graph LR
 | 数据库 | expo-sqlite | 本地 SQLite 持久存储 |
 | LLM | DeepSeek API (OpenAI 兼容) | 主对话模型 |
 | 搜索 | Aliyun DashScope (Qwen + enable_search) | 联网搜索增强 |
-| 图片 | Aliyun DashScope (qwen-image-max) | AI 文生图 |
-| 嵌入 | Aliyun DashScope (text-embedding-v3) | 文本向量化 |
-| 视觉 | Aliyun DashScope (qwen-vl-max) | 图片理解 |
+| 图片 | Aliyun DashScope (qwen-image-max) | AI 文生图 + LLM 提示词优化 |
+| 嵌入 | Aliyun DashScope (text-embedding-v3 / qwen3-vl-embedding) | 文本/非文本向量化双路 |
+| 视觉 | Aliyun DashScope (qwen-vl-max) | 图片理解（可串联联网搜索） |
 | 流式 | XHR + SSE 手动解析 | 流式对话 (RN 不支持 ReadableStream) |
 | Markdown | react-native-markdown-display | AI 回复渲染 |
 | 语音 | expo-speech / expo-av | TTS / STT |
+| 剪贴板 | expo-clipboard | AI 消息一键复制 |
+| 动画 | React Native Animated API | 打点加载指示器 |
+
+---
+
+## 4. 主要 UI 交互改进（2026）
+
+| 功能 | 说明 | 对标 |
+|------|------|------|
+| 动态打点指示器 | 三点弹跳动画替代静态"AI正在思考..." | ChatGPT / Claude |
+| AI 消息复制按钮 | 每条 AI 消息气泡下方显示「复制」按钮，点击后变「✓ 已复制」 | ChatGPT / Kimi / 豆包 |
+| 快捷提示语 | 空聊天状态展示 4 个示例提示（配置 API Key 后显示），一键发送 | ChatGPT / Claude |
+| 多附件发送 | 同一轮可混合发送多张图片 + 多个文件 | 豆包 / Kimi |
+| 批量删除对话 | 侧栏编辑模式 + 全选批量删除 | 主流 AI App |
+
+---
+
+## 5. 测试覆盖
+
+| 测试文件 | 覆盖内容 | 用例数 |
+|---------|---------|--------|
+| `__tests__/utils/time.test.ts` | 时间快照、时间锚点注入、意图检测 | 13 |
+| `__tests__/utils/vectorSearch.test.ts` | 余弦相似度、TopK 检索 | 12 |
+| `__tests__/components/MessageBubble.test.ts` | Markdown 图片语法过滤 | 7 |
+| 合计 | — | **32** |
