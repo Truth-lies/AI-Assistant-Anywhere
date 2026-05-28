@@ -84,6 +84,7 @@ export default function ChatScreen() {
   } = useAppStore();
 
   const currentConv = conversations.find((c) => c.id === currentConversationId);
+  const capabilityLabels = ['⚡ 智能路由', '🔎 实时检索', '📎 图文附件'];
 
   const scrollToBottom = useCallback((force = false) => {
     if (!force && !autoScrollRef.current) return;
@@ -172,15 +173,14 @@ export default function ChatScreen() {
             </Text>
 
             <View style={styles.capabilityRow}>
-              <View style={[styles.capabilityChip, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}> 
-                <Text style={[styles.capabilityText, { color: colors.textSecondary }]}>⚡ 智能路由</Text>
-              </View>
-              <View style={[styles.capabilityChip, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}> 
-                <Text style={[styles.capabilityText, { color: colors.textSecondary }]}>🔎 实时检索</Text>
-              </View>
-              <View style={[styles.capabilityChip, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}> 
-                <Text style={[styles.capabilityText, { color: colors.textSecondary }]}>📎 图文附件</Text>
-              </View>
+              {capabilityLabels.map((label) => (
+                <View
+                  key={label}
+                  style={[styles.capabilityChip, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
+                >
+                  <Text style={[styles.capabilityText, { color: colors.textSecondary }]}>{label}</Text>
+                </View>
+              ))}
             </View>
 
             {!settings.deepseekApiKey && (
