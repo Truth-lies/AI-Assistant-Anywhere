@@ -1,10 +1,9 @@
 import type { AppSettings, ApiMessage } from '../types';
 import { buildTimeContextLine } from '../utils/time';
 
-const FORMAT_REQUIREMENT_HINT =
-  '【格式要求】\n'
-  + '1. 数学公式必须使用 Markdown 语法：行内公式用 $...$，独立公式块用 $$...$$。绝对不要输出完整的 LaTeX 文档代码（如 \\begin{document} 等）。\n'
-  + '2. 图表请使用 Markdown 的 mermaid 代码块。';
+const FORMAT_REQUIREMENT_HINT = `【格式要求】
+1. 数学公式必须使用 Markdown 语法：行内公式用 $...$，独立公式块用 $$...$$。绝对不要输出完整的 LaTeX 文档代码（如 \\begin{document} 等）。
+2. 图表请使用 Markdown 的 mermaid 代码块。`;
 
 export function shouldDescribePreviousGeneratedImage(text: string): boolean {
   const t = text.trim();

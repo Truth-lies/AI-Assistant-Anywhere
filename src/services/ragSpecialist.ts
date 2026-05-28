@@ -37,6 +37,21 @@ import type {
   ApiMessage,
 } from '../types';
 
+function formatLayerHitReason(baseReason: string, boost: number): string {
+  return `${baseReason}（层级权重 x${boost.toFixed(2)}）`;
+}
+
+function formatRagContextItem(result: RagSearchResult, index: number): string {
+  const refParts = [
+    result.sourceId ? `来源=${result.sourceId}` : '',
+    result.embeddingModel ? `embedding=${result.embeddingModel}` : '',
+    Number.isFinite(result.score) ? `score=${result.score.toFixed(3)}` : '',
+  ].filter(Boolean);
+  const reasonLine = result.hitReason ? `\n      ↳ 命中原因：${result.hitReason}` : '';
+  const refLine = refParts.length ? `\n      ↳ 引用：${refParts.join(' | ')}` : '';
+  return `  [${index + 1}] ${result.content}${reasonLine}${refLine}`;
+}
+
 // ==================== 多层检索 ====================
 
 /**
@@ -91,7 +106,7 @@ export async function multiLayerSearch(
               sourceId: r.sourceId,
               createdAt: r.createdAt,
               embeddingModel: model,
-              hitReason: `${config.reason}（层级权重 x${config.boost.toFixed(2)}）`,
+              hitReason: formatLayerHitReason(config.reason, config.boost),
               layer: (config.layer || 'general') as RagLayer,
             })),
           );
@@ -142,16 +157,7 @@ export function buildRagContext(results: RagSearchResult[]): string {
   const parts: string[] = [];
   for (const [layer, items] of Object.entries(grouped)) {
     const name = layerNames[layer] || layer;
-    const content = items.map((r, i) => {
-      const refParts = [
-        r.sourceId ? `来源=${r.sourceId}` : '',
-        r.embeddingModel ? `embedding=${r.embeddingModel}` : '',
-        Number.isFinite(r.score) ? `score=${r.score.toFixed(3)}` : '',
-      ].filter(Boolean);
-      const reasonLine = r.hitReason ? `\n      ↳ 命中原因：${r.hitReason}` : '';
-      const refLine = refParts.length ? `\n      ↳ 引用：${refParts.join(' | ')}` : '';
-      return `  [${i + 1}] ${r.content}${reasonLine}${refLine}`;
-    }).join('\n');
+    const content = items.map((r, i) => formatRagContextItem(r, i)).join('\n');
     parts.push(`【${name}】\n${content}`);
   }
 
