@@ -54,11 +54,11 @@ export async function multiLayerSearch(
     const results: RagSearchResult[] = [];
 
     // 各层分配检索数量
-    const layerConfig: { layer: RagLayer | undefined; k: number; boost: number }[] = [
-      { layer: 'emotional', k: 2, boost: 1.1 },  // 感性层优先
-      { layer: 'rational', k: 2, boost: 1.2 },   // 理性层最高优先
-      { layer: 'historical', k: 3, boost: 1.0 },  // 历史层
-      { layer: undefined, k: 3, boost: 0.9 },     // 通用层（包含所有）
+    const layerConfig: { layer: RagLayer | undefined; k: number; boost: number; reason: string }[] = [
+    { layer: 'emotional', k: 2, boost: 1.1, reason: '命中用户近期情绪状态' },  // 感性层优先
+    { layer: 'rational', k: 2, boost: 1.2, reason: '命中长期用户画像偏好' },   // 理性层最高优先
+    { layer: 'historical', k: 3, boost: 1.0, reason: '命中历史对话语义' },  // 历史层
+    { layer: undefined, k: 3, boost: 0.9, reason: '命中知识库通用内容' },     // 通用层（包含所有）
     ];
 
     for (const config of layerConfig) {
@@ -87,7 +87,11 @@ export async function multiLayerSearch(
               id: r.id,
               content: r.content,
               score: r.score * config.boost, // 层级加权
-              source: 'rag',
+              source: r.source || 'rag',
+              sourceId: r.sourceId,
+              createdAt: r.createdAt,
+              embeddingModel: model,
+              hitReason: `${config.reason}（层级权重 x${config.boost.toFixed(2)}）`,
               layer: (config.layer || 'general') as RagLayer,
             })),
           );
@@ -138,7 +142,16 @@ export function buildRagContext(results: RagSearchResult[]): string {
   const parts: string[] = [];
   for (const [layer, items] of Object.entries(grouped)) {
     const name = layerNames[layer] || layer;
-    const content = items.map((r, i) => `  [${i + 1}] ${r.content}`).join('\n');
+    const content = items.map((r, i) => {
+      const refParts = [
+        r.sourceId ? `来源=${r.sourceId}` : '',
+        r.embeddingModel ? `embedding=${r.embeddingModel}` : '',
+        Number.isFinite(r.score) ? `score=${r.score.toFixed(3)}` : '',
+      ].filter(Boolean);
+      const reasonLine = r.hitReason ? `\n      ↳ 命中原因：${r.hitReason}` : '';
+      const refLine = refParts.length ? `\n      ↳ 引用：${refParts.join(' | ')}` : '';
+      return `  [${i + 1}] ${r.content}${reasonLine}${refLine}`;
+    }).join('\n');
     parts.push(`【${name}】\n${content}`);
   }
 

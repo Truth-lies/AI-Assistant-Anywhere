@@ -4,6 +4,16 @@
 
 ---
 
+## 0. 2026-05 增量（编排解耦）
+
+- `src/store/messagePipeline.ts` 新增可复用编排辅助：
+  - `buildSystemPromptWithContext`：统一系统提示 + 时间锚点 + 格式约束 + RAG 注入。
+  - `flattenApiUserText`：多模态消息在二次链路中的文本抽取，避免重复拼接逻辑散落在 `store/index.ts`。
+  - `shouldDescribePreviousGeneratedImage`：对“描述刚生成图片”追问逻辑进行独立封装。
+- `store/index.ts` 保留主流程，消息拼装细节下沉到独立模块，降低后续继续堆积风险。
+
+---
+
 ## 1. 完整消息生命周期
 
 ```mermaid
@@ -229,4 +239,3 @@ graph TD
 - 聊天页统一使用 `KeyboardAvoidingView` 处理双端键盘避让（iOS 使用 `behavior="padding"`，Android 使用 `behavior={undefined}`）。
 - 移除 `FlatList` 的 `onLayout={scrollToBottom}`，仅保留 `onContentSizeChange` 触发滚动。
 - 发送后主动 `Keyboard.dismiss()`，降低部分机型（如 iQOO/MIUI/ColorOS）输入模式残留导致的底部悬空概率。
-

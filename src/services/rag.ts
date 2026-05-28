@@ -200,7 +200,11 @@ export async function searchRag(
         id: r.id,
         content: r.content,
         score: r.score,
-        source: 'rag',
+        source: r.source || 'rag',
+        sourceId: r.sourceId,
+        createdAt: r.createdAt,
+        embeddingModel: r.embeddingModel || embeddingModel,
+        hitReason: '命中通用层语义相似内容',
         layer: 'general' as const,
       }));
   } catch (error) {

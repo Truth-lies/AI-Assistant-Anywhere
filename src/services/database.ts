@@ -317,10 +317,19 @@ export async function addRagChunks(chunks: RagChunk[]): Promise<void> {
 export async function getAllRagChunksWithEmbeddings(
   layer?: RagLayer
 ): Promise<
-  Array<{ id: string; content: string; embedding: number[]; layer: RagLayer; embeddingModel?: string }>
+  Array<{
+    id: string;
+    content: string;
+    embedding: number[];
+    layer: RagLayer;
+    embeddingModel?: string;
+    source: RagChunk['source'];
+    sourceId: string;
+    createdAt: number;
+  }>
 > {
   const database = getDatabase();
-  let query = 'SELECT id, content, embedding, layer, embedding_model FROM rag_chunks WHERE embedding IS NOT NULL';
+  let query = 'SELECT id, source, source_id, content, embedding, layer, embedding_model, created_at FROM rag_chunks WHERE embedding IS NOT NULL';
   const params: any[] = [];
   if (layer) {
     query += ' AND layer = ?';
@@ -329,10 +338,13 @@ export async function getAllRagChunksWithEmbeddings(
   const rows = await database.getAllAsync(query, params);
   return (rows as any[]).map((row) => ({
     id: row.id,
+    source: row.source,
+    sourceId: row.source_id,
     content: row.content,
     embedding: JSON.parse(row.embedding),
     layer: row.layer || 'general',
     embeddingModel: row.embedding_model || undefined,
+    createdAt: row.created_at,
   }));
 }
 

@@ -23,13 +23,12 @@ export function cosineSimilarity(a: number[], b: number[]): number {
 /** 在向量集合中查找最相似的 Top-K 结果 */
 export function findTopK(
   queryEmbedding: number[],
-  chunks: Array<{ id: string; content: string; embedding: number[] }>,
+  chunks: Array<{ id: string; content: string; embedding: number[]; [key: string]: any }>,
   k: number = 5
-): Array<{ id: string; content: string; score: number }> {
+): Array<{ id: string; content: string; score: number; [key: string]: any }> {
   const scored = chunks
     .map((chunk) => ({
-      id: chunk.id,
-      content: chunk.content,
+      ...chunk,
       score: cosineSimilarity(queryEmbedding, chunk.embedding),
     }))
     .filter((item) => item.score > 0);

@@ -62,6 +62,10 @@ export interface RagSearchResult {
   content: string;
   score: number;
   source: string;
+  sourceId?: string;
+  createdAt?: number;
+  embeddingModel?: string;
+  hitReason?: string;
   layer: RagLayer;
 }
 
