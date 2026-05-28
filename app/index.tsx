@@ -84,6 +84,7 @@ export default function ChatScreen() {
   } = useAppStore();
 
   const currentConv = conversations.find((c) => c.id === currentConversationId);
+  const capabilityLabels = ['⚡ 智能路由', '🔎 实时检索', '📎 图文附件'];
 
   const scrollToBottom = useCallback((force = false) => {
     if (!force && !autoScrollRef.current) return;
@@ -136,9 +137,14 @@ export default function ChatScreen() {
           </View>
         </TouchableOpacity>
 
-        <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
-          {currentConv?.title || '新对话'}
-        </Text>
+        <View style={styles.headerTitleWrap}>
+          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
+            {currentConv?.title || '新对话'}
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textTertiary }]} numberOfLines={1}>
+            AI 助手随时在线
+          </Text>
+        </View>
 
         <View style={styles.headerRight}>
           {/* 新建对话 */}
@@ -157,37 +163,38 @@ export default function ChatScreen() {
       {/* 消息列表 */}
       {messages.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <View style={[styles.emptyLogo, { backgroundColor: colors.primaryLight }]}>
-            <Image source={APP_AVATAR} style={styles.emptyLogoImage} />
-          </View>
-          <Text style={[styles.emptyTitle, { color: colors.text }]}>
-            新对话
-          </Text>
-          <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-            多层记忆 · 联网搜索 · 图片生成 · 图片理解
-          </Text>
+          <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.emptyLogo, { backgroundColor: colors.primaryLight }]}>
+              <Image source={APP_AVATAR} style={styles.emptyLogoImage} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+              新对话
+            </Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+              多层记忆 · 联网搜索 · 图片生成 · 图片理解
+            </Text>
 
-          <View style={styles.capabilityRow}>
-            <View style={[styles.capabilityChip, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
-              <Text style={[styles.capabilityText, { color: colors.textSecondary }]}>⚡ 智能路由</Text>
+            <View style={styles.capabilityRow}>
+              {capabilityLabels.map((label) => (
+                <View
+                  key={label}
+                  style={[styles.capabilityChip, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
+                >
+                  <Text style={[styles.capabilityText, { color: colors.textSecondary }]}>{label}</Text>
+                </View>
+              ))}
             </View>
-            <View style={[styles.capabilityChip, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
-              <Text style={[styles.capabilityText, { color: colors.textSecondary }]}>🔎 实时检索</Text>
-            </View>
-            <View style={[styles.capabilityChip, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
-              <Text style={[styles.capabilityText, { color: colors.textSecondary }]}>📎 图文附件</Text>
-            </View>
-          </View>
 
-          {!settings.deepseekApiKey && (
-            <TouchableOpacity
-              onPress={() => router.push('/settings')}
-              style={[styles.setupBtn, { backgroundColor: colors.primary }]}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.setupBtnText}>配置 API Key 开始使用</Text>
-            </TouchableOpacity>
-          )}
+            {!settings.deepseekApiKey && (
+              <TouchableOpacity
+                onPress={() => router.push('/settings')}
+                style={[styles.setupBtn, { backgroundColor: colors.primary }]}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.setupBtnText}>配置 API Key 开始使用</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       ) : (
         <FlatList
@@ -298,9 +305,20 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     textAlign: 'center',
+    fontFamily: Typography.fontFamily,
+  },
+  headerTitleWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerSubtitle: {
+    textAlign: 'center',
+    fontSize: 11,
+    marginTop: 2,
     fontFamily: Typography.fontFamily,
   },
   headerRight: {
@@ -343,23 +361,36 @@ const styles = StyleSheet.create({
     marginTop: -1,
   },
   messageList: {
-    paddingVertical: 10,
+    paddingTop: 12,
     paddingBottom: 24,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 24,
+  },
+  emptyCard: {
+    width: '100%',
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: 'center',
+    paddingHorizontal: 22,
+    paddingVertical: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 6,
   },
   emptyLogo: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
+    width: 72,
+    height: 72,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 18,
   },
   emptyLogoText: {
     fontSize: 28,
@@ -372,29 +403,29 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   emptyTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 10,
     fontFamily: Typography.fontFamily,
   },
   emptySubtitle: {
     fontSize: 14,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
     fontFamily: Typography.fontFamily,
   },
   capabilityRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginTop: 14,
-    gap: 8,
+    marginTop: 16,
+    gap: 10,
   },
   capabilityChip: {
-    borderWidth: 0.8,
+    borderWidth: 1,
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   capabilityText: {
     fontSize: 12,
@@ -402,10 +433,15 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily,
   },
   setupBtn: {
-    marginTop: 24,
-    paddingHorizontal: 28,
+    marginTop: 26,
+    paddingHorizontal: 30,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 10,
+    elevation: 4,
   },
   setupBtnText: {
     color: '#FFF',
@@ -417,7 +453,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
+    alignSelf: 'center',
+    marginBottom: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(130, 152, 186, 0.14)',
   },
   typingText: {
     marginLeft: 8,

@@ -179,12 +179,10 @@ export function ChatInput() {
           <View style={[styles.imagePreviewRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
             <View style={styles.imagePreviewWrap}> 
               {pendingAttachments.map((att, idx) => (
-                <View key={`${att.uri}-${idx}`} style={styles.attachmentChip}>
-                  <View style={[styles.imagePreviewPlaceholder, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
-                    <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: Typography.fontFamily }} numberOfLines={1}>
-                      {att.kind === 'image' ? `📷 ${att.name}` : `📎 ${att.name}`}
-                    </Text>
-                  </View>
+                <View key={`${att.uri}-${idx}`} style={[styles.attachmentChip, { borderColor: colors.border, backgroundColor: colors.inputBg }]}>
+                  <Text style={[styles.imagePreviewText, { color: colors.textSecondary }]} numberOfLines={1}>
+                    {att.kind === 'image' ? `📷 ${att.name}` : `📎 ${att.name}`}
+                  </Text>
                   <TouchableOpacity
                     onPress={() => removePendingAttachment(idx)}
                     style={styles.imageRemoveBtn}
@@ -204,7 +202,7 @@ export function ChatInput() {
           disabled={isLoading}
           activeOpacity={0.6}
         >
-            <View style={[styles.iconCircle, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+            <View style={[styles.iconCircle, { borderColor: colors.border, backgroundColor: colors.inputBg }]}>
             <Text style={[styles.iconSymbol, { color: colors.textSecondary }]}>+</Text>
           </View>
         </TouchableOpacity>
@@ -264,14 +262,14 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderTopWidth: 0.8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
   iconBtn: {
     width: 38,
@@ -284,7 +282,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    borderWidth: 1.2,
+    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -302,23 +300,23 @@ const styles = StyleSheet.create({
   inputWrap: {
     flex: 1,
     minWidth: 140,
-    borderRadius: 22,
-    borderWidth: 1.3,
+    borderRadius: 20,
+    borderWidth: 1,
     paddingHorizontal: 16,
-    paddingVertical: 9,
+    paddingVertical: 10,
     minHeight: 46,
-    maxHeight: 124,
-    marginHorizontal: 8,
+    maxHeight: 132,
+    marginHorizontal: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   input: {
     fontSize: 15,
-    maxHeight: 98,
-    lineHeight: 23,
+    maxHeight: 104,
+    lineHeight: 24,
     fontFamily: Typography.fontFamily,
   },
   // 录音按钮
@@ -336,16 +334,16 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   sendBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
   },
   sendBtnText: {
     color: '#FFF',
@@ -362,8 +360,8 @@ const styles = StyleSheet.create({
   // 图片预览
   imagePreviewRow: {
     paddingHorizontal: 12,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingTop: 10,
+    paddingBottom: 6,
     borderTopWidth: 0.5,
   },
   imagePreviewWrap: {
@@ -375,18 +373,22 @@ const styles = StyleSheet.create({
   attachmentChip: {
     flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 6,
+    paddingLeft: 10,
+    paddingRight: 8,
   },
-  imagePreviewPlaceholder: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 0.8,
+  imagePreviewText: {
+    maxWidth: 188,
+    fontSize: 12,
+    fontFamily: Typography.fontFamily,
   },
   imageRemoveBtn: {
-    marginLeft: 8,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    marginLeft: 6,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: '#FF3B30',
     justifyContent: 'center',
     alignItems: 'center',

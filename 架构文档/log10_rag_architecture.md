@@ -27,7 +27,7 @@ graph TB
     end
 
     subgraph Output["buildRagContext()"]
-        CTX["组装 RAG 上下文<br/>注入 system prompt"]
+        CTX["组装 RAG 上下文<br/>注入 system prompt<br/>附命中原因/来源/分数"]
     end
 
     Q --> EMB
@@ -47,6 +47,19 @@ graph TB
     style L3 fill:#FFF3E0,stroke:#EF6C00
     style L4 fill:#E8F5E9,stroke:#2E7D32
 ```
+
+---
+
+## 1.1 检索可解释增强（2026-05）
+
+- `multiLayerSearch` 现为每条召回结果增加：
+  - `hitReason`（命中原因）
+  - `sourceId`（来源标识）
+  - `embeddingModel`（命中向量模型）
+- `buildRagContext` 在注入 system prompt 前，会输出：
+  - 命中原因（层级语义 + 权重）
+  - 引用信息（来源、embedding 模型、score）
+- 目标：让回答依据可追踪，便于后续做“记忆治理（编辑/删除/纠偏）”。
 
 ---
 

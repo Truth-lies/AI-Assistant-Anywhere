@@ -47,10 +47,14 @@ import {
 } from '../services/ragSpecialist';
 import { addChatToRag } from '../services/rag';
 import { imageToBase64 } from '../utils/fileUtils';
-import { buildTimeContextLine } from '../utils/time';
 import { getDashScopeCompatibleBaseUrl } from '../config/api';
 import { reportError, toUserFriendlyMessage } from '../services/errorHandler';
 import type { ExportData } from '../types';
+import {
+  buildSystemPromptWithContext,
+  flattenApiUserText,
+  shouldDescribePreviousGeneratedImage,
+} from './messagePipeline';
 
 type SendAttachment = {
   kind: 'image' | 'file';
@@ -65,14 +69,6 @@ let appLifecycleState = RNAppState.currentState;
 RNAppState.addEventListener('change', (nextState) => {
   appLifecycleState = nextState;
 });
-
-function shouldDescribePreviousGeneratedImage(text: string): boolean {
-  const t = text.trim();
-  if (!t) return false;
-  return /刚才|上一张|上一个|前一张|刚生成|那张/.test(t)
-    && /图|图片|照片|画/.test(t)
-    && /描述|讲讲|分析|看看|解读|说说/.test(t);
-}
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -430,15 +426,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const apiMessages: ApiMessage[] = [];
 
       // 系统提示（含多层 RAG 上下文）
-      let systemPrompt = `${settings.systemPrompt}\n\n${buildTimeContextLine()}`;
-      
-      // 强制注入富文本格式要求，防止模型输出完整的 LaTeX 文档导致渲染失败
-      if (!systemPrompt.includes('$$')) {
-        systemPrompt += `\n\n【格式要求】\n1. 数学公式必须使用 Markdown 语法：行内公式用 $...$，独立公式块用 $$...$$。绝对不要输出完整的 LaTeX 文档代码（如 \\begin{document} 等）。\n2. 图表请使用 Markdown 的 mermaid 代码块。`;
-      }
-      if (ragContext) {
-        systemPrompt += `\n\n以下是从多层记忆系统中检索到的相关内容：\n${ragContext}`;
-      }
+      const systemPrompt = buildSystemPromptWithContext(settings, ragContext);
       apiMessages.push({ role: 'system', content: systemPrompt });
 
       // 历史消息（排除当前轮）
@@ -658,13 +646,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
           const enhancedMessages: ApiMessage[] = [];
           for (const m of apiMessages) {
-            if (m.role === 'user' && Array.isArray(m.content)) {
-              const textPart = (m.content as any[])
-                .filter((part: any) => part.type === 'text')
-                .map((part: any) => part.text || '')
-                .join('\n')
-                .trim();
-              enhancedMessages.push({ role: 'user', content: textPart || imageQuestion });
+            if (m.role === 'user') {
+              enhancedMessages.push({
+                role: 'user',
+                content: flattenApiUserText(m, imageQuestion),
+              });
             } else {
               enhancedMessages.push(m);
             }

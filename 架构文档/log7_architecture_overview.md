@@ -1,6 +1,6 @@
 # 📐 项目总体架构图
 
-> 版本：V2.0（2026-02） · 基于当前代码库分析
+> 版本：V2.1（2026-05） · 基于当前代码库分析
 
 ---
 
@@ -175,3 +175,18 @@ graph LR
 | 流式 | XHR + SSE 手动解析 | 流式对话 (RN 不支持 ReadableStream) |
 | Markdown | react-native-markdown-display | AI 回复渲染 |
 | 语音 | expo-speech / expo-av | TTS / STT |
+
+---
+
+## 4. 聊天 UI 视觉分层（V2.1）
+
+```mermaid
+graph TD
+    A["index.tsx 主聊天页"] --> B["顶部导航层<br/>标题 + 次级品牌文案 + 新建入口"]
+    A --> C["内容层<br/>消息列表 / 空状态卡片"]
+    C --> C1["空状态卡片<br/>头像 + 能力标签 + 设置引导按钮"]
+    A --> D["反馈层<br/>AI 思考指示胶囊"]
+    A --> E["输入层<br/>ChatInput 胶囊输入区 + 附件标签区"]
+    E --> E1["附件标签<br/>图像/文件统一 chip 样式"]
+    E --> E2["操作按钮<br/>添加附件 + 发送/停止"]
+```
