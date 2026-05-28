@@ -142,7 +142,7 @@ export default function ChatScreen() {
             {currentConv?.title || '新对话'}
           </Text>
           <Text style={[styles.headerSubtitle, { color: colors.textTertiary }]} numberOfLines={1}>
-            AI Assistant Anywhere
+            AI 助手随时在线
           </Text>
         </View>
 
