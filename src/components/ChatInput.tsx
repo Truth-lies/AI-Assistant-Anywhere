@@ -180,11 +180,9 @@ export function ChatInput() {
             <View style={styles.imagePreviewWrap}> 
               {pendingAttachments.map((att, idx) => (
                 <View key={`${att.uri}-${idx}`} style={[styles.attachmentChip, { borderColor: colors.border, backgroundColor: colors.inputBg }]}>
-                  <View style={styles.imagePreviewPlaceholder}>
-                    <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: Typography.fontFamily }} numberOfLines={1}>
-                      {att.kind === 'image' ? `📷 ${att.name}` : `📎 ${att.name}`}
-                    </Text>
-                  </View>
+                  <Text style={[styles.imagePreviewText, { color: colors.textSecondary }]} numberOfLines={1}>
+                    {att.kind === 'image' ? `📷 ${att.name}` : `📎 ${att.name}`}
+                  </Text>
                   <TouchableOpacity
                     onPress={() => removePendingAttachment(idx)}
                     style={styles.imageRemoveBtn}
@@ -381,8 +379,10 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingRight: 8,
   },
-  imagePreviewPlaceholder: {
+  imagePreviewText: {
     maxWidth: 188,
+    fontSize: 12,
+    fontFamily: Typography.fontFamily,
   },
   imageRemoveBtn: {
     marginLeft: 6,

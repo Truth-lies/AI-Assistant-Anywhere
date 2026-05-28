@@ -137,12 +137,14 @@ export default function ChatScreen() {
           </View>
         </TouchableOpacity>
 
-        <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
-          {currentConv?.title || '新对话'}
-        </Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textTertiary }]} numberOfLines={1}>
-          AI Assistant Anywhere
-        </Text>
+        <View style={styles.headerTitleWrap}>
+          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
+            {currentConv?.title || '新对话'}
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textTertiary }]} numberOfLines={1}>
+            AI Assistant Anywhere
+          </Text>
+        </View>
 
         <View style={styles.headerRight}>
           {/* 新建对话 */}
@@ -308,13 +310,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: Typography.fontFamily,
   },
+  headerTitleWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerSubtitle: {
-    position: 'absolute',
-    bottom: 4,
-    left: 56,
-    right: 56,
     textAlign: 'center',
     fontSize: 11,
+    marginTop: 2,
     fontFamily: Typography.fontFamily,
   },
   headerRight: {
